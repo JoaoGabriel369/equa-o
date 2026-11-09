@@ -58,7 +58,7 @@ button{font:inherit}.app{width:min(100%,690px);position:relative}
     <section class="card" aria-live="polite">
       <div id="game">
         <div class="stats">
-          <div class="stat"><div class="stat-label">Questão</div><div class="stat-value"><span id="current">1</span><span style="color:var(--muted)"> / 35</span></div><div class="progress-wrap"><div class="progress" id="progress"></div></div></div>
+          <div class="stat"><div class="stat-label">Questão</div><div class="stat-value"><span id="current">1</span><span style="color:var(--muted)"> / 38</span></div><div class="progress-wrap"><div class="progress" id="progress"></div></div></div>
           <div class="level" id="level">Nível 1</div>
           <div class="stat"><div class="stat-label">Pontos</div><div class="stat-value"><span id="score">0</span> <span style="font-size:14px;color:var(--yellow)">★</span></div></div>
         </div>
@@ -85,7 +85,7 @@ button{font:inherit}.app{width:min(100%,690px);position:relative}
   </main>
   <script>
 (() => {
-  const TOTAL = 35;
+  const TOTAL = 38;
   const LEVELS = ['Fundamentos','Proporção e álgebra','Funções e geometria plana','Geometria e sequências','ENEM: finanças, contagem e dados'];
   let question = 0, score = 0, currentAnswer = 0, locked = false, questions = [];
   const $ = id => document.getElementById(id);
@@ -111,7 +111,7 @@ button{font:inherit}.app{width:min(100%,690px);position:relative}
     () => {const h=rand(2,8),rate=rand(3,9),target=h*rand(2,5);return make(2,'Regra de três','Uma máquina produz '+(h*rate)+' peças em '+h+' horas. Mantendo o ritmo, quantas peças produzirá em '+target+' horas?',''+(h*rate)+' peças / '+h+' h',rate*target,'A produção é diretamente proporcional ao tempo: '+rate+' peças por hora × '+target+' horas = '+rate*target+'.');},
     () => {const workers=rand(2,5),days=rand(6,15),more=workers*rand(2,4);return make(2,'Grandezas inversas',''+workers+' trabalhadores concluem uma tarefa em '+days+' dias. No mesmo ritmo, em quantos dias '+more+' trabalhadores fariam a tarefa?',''+workers+' × '+days+' = '+more+' × x',workers*days/more,'Como mais trabalhadores reduzem o tempo, a relação é inversamente proporcional: '+workers+' × '+days+' ÷ '+more+' = '+fmt(workers*days/more)+' dias.');},
     () => {const real=rand(2,8)*1000,scale=rand(2,5)*10000,cm=rand(3,9);return make(2,'Escalas','Em um mapa de escala 1:'+scale+', a distância entre duas cidades é '+cm+' cm. Qual é a distância real em quilômetros?',''+cm+' × '+scale+' cm',cm*scale/100000,'A distância real é '+(cm*scale)+' cm. Dividindo por 100.000, obtemos '+fmt(cm*scale/100000)+' km.');},
-    () => {const m=rand(2,8),b=rand(1,12),x=rand(2,9);return make(2,'Função afim','Uma corrida de aplicativo cobra taxa fixa de R$ '+b+' mais R$ '+m+' por quilômetro. Qual o preço de uma corrida de '+x+' km?','f(x) = '+m+'x + '+b,m*x+b,'Substituindo x = '+x': '+m+' × '+x+' + '+b+' = R$ '+(m*x+b)+'.');},
+    () => {const m=rand(2,8),b=rand(1,12),x=rand(2,9);return make(2,'Função afim','Uma corrida de aplicativo cobra taxa fixa de R$ '+b+' mais R$ '+m+' por quilômetro. Qual o preço de uma corrida de '+x+' km?','f(x) = '+m+'x + '+b,m*x+b,'Substituindo x = '+x+': '+m+' × '+x+' + '+b+' = R$ '+(m*x+b)+'.');},
     () => {const x=rand(3,12),b=rand(2,15),a=rand(2,7),rhs=a*x+b;return make(2,'Equação do 1º grau','Uma compra é representada por '+a+'x + '+b+' = '+rhs+'. Qual é o valor de x?',''+a+'x + '+b+' = '+rhs,x,'Isolando x: '+a+'x = '+(rhs-b)+'; então x = '+x+'.');},
     () => {const x=rand(2,8),y=rand(1,7),a=rand(1,4),b=rand(1,4),c=a*x+b*y,d=rand(1,4)*x+rand(1,4)*y;return make(2,'Sistemas lineares','Em um sistema, as incógnitas representam quantidades de dois produtos. Sabendo que x + y = '+(x+y)+' e x − y = '+(x-y)+', qual é x?','x + y = '+(x+y)+'; x − y = '+(x-y),x,'Somando as equações: 2x = '+(2*x)+'. Logo, x = '+x+'.');},
     () => {const r=rand(2,9),x=rand(2,7),b=rand(1,8),c=x*x-r*r;const ans=x;return make(2,'Função quadrática','A altura de um objeto é dada por h(t) = −t² + '+(2*x)+'t + b+'. Em qual instante ocorre a altura máxima?','t do vértice = −B/(2A)',x,'Na parábola, o vértice ocorre em t = −B/(2A). Aqui, t = −'+(2*x)+'/(2 × −1) = '+x+'.');},
@@ -149,7 +149,7 @@ button{font:inherit}.app{width:min(100%,690px);position:relative}
 
   function createGame() {
     const grouped = [1,2,3,4,5].map(level => shuffle(generators.filter((_,i) => {
-      const ranges = [[0,6],[7,13],[14,20],[21,27],[28,34]][level-1];
+      const ranges = [[0,6],[7,13],[14,20],[21,27],[28,37]][level-1];
       return i >= ranges[0] && i <= ranges[1];
     }).map(fn => fn())));
     questions = grouped.flat();
