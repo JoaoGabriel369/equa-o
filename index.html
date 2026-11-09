@@ -58,12 +58,12 @@ button{font:inherit}.app{width:min(100%,690px);position:relative}
     <section class="card" aria-live="polite">
       <div id="game">
         <div class="stats">
-          <div class="stat"><div class="stat-label">Questão</div><div class="stat-value"><span id="current">1</span><span style="color:var(--muted)"> / 10</span></div><div class="progress-wrap"><div class="progress" id="progress"></div></div></div>
+          <div class="stat"><div class="stat-label">Questão</div><div class="stat-value"><span id="current">1</span><span style="color:var(--muted)"> / 15</span></div><div class="progress-wrap"><div class="progress" id="progress"></div></div></div>
           <div class="level" id="level">Nível 1</div>
           <div class="stat"><div class="stat-label">Pontos</div><div class="stat-value"><span id="score">0</span> <span style="font-size:14px;color:var(--yellow)">★</span></div></div>
         </div>
         <div class="prompt">
-          <p>Qual é o valor desta equação?</p>
+          <p id="questionPrompt">Resolva o desafio matemático:</p>
           <div class="equation" id="equation">8 + 4 <span class="equals">= ?</span></div>
           <div class="hint" id="hint">Escolha uma das quatro alternativas</div>
         </div>
@@ -85,32 +85,74 @@ button{font:inherit}.app{width:min(100%,690px);position:relative}
   </main>
   <script>
     (() => {
-      const TOTAL = 10;
+      const TOTAL = 15;
       let question = 0, score = 0, currentAnswer = 0, locked = false;
       const $ = id => document.getElementById(id);
       const equationEl = $('equation'), answersEl = $('answers');
       const rand = (min,max) => Math.floor(Math.random()*(max-min+1))+min;
       const shuffle = arr => arr.sort(() => Math.random()-.5);
+      const money = n => 'R$ ' + n.toLocaleString('pt-BR');
 
       function makeQuestion(index) {
-        const level = index < 3 ? 1 : index < 7 ? 2 : 3;
-        let a,b,c,op,answer,expression;
-        if(level === 1) {
-          a=rand(2,20); b=rand(2,15); op=Math.random()<.5?'+':'−';
-          answer=op==='+'?a+b:a-b; expression=op==='+'?`${a} + ${b}`:`${a} − ${b}`;
-        } else if(level === 2) {
-          const kind=rand(0,2);
-          if(kind===0){a=rand(3,15);b=rand(2,12);op='×';answer=a*b;expression=`${a} × ${b}`;}
-          else if(kind===1){b=rand(2,12);answer=rand(2,12);a=b*answer;op='÷';expression=`${a} ÷ ${b}`;}
-          else {a=rand(10,35);b=rand(3,18);op=Math.random()<.5?'+':'−';answer=op==='+'?a+b:a-b;expression=op==='+'?`${a} + ${b}`:`${a} − ${b}`;}
-        } else {
-          const kind=rand(0,3);
-          if(kind===0){a=rand(2,12);b=rand(2,10);c=rand(1,15);answer=a*b+c;expression=`${a} × ${b} + ${c}`;}
-          else if(kind===1){a=rand(2,10);b=rand(2,10);c=rand(2,8);answer=(a+b)*c;expression=`(${a} + ${b}) × ${c}`;}
-          else if(kind===2){b=rand(2,10);c=rand(2,10);answer=rand(2,10);a=b*answer+c;answer=a-c;expression=`(${a} − ${c}) ÷ ${b}`;answer=(a-c)/b;}
-          else {a=rand(2,12);b=rand(2,9);c=rand(2,12);answer=a+b*c;expression=`${a} + ${b} × ${c}`;}
+        const level = Math.min(5, Math.floor(index / 3) + 1);
+        let a,b,c,answer,expression,prompt,explanation;
+        switch(index) {
+          case 0:
+          case 1:
+          case 2:
+            a=rand(12,45); b=rand(4,25);
+            if(index===0){answer=a+b;expression=`${a} + ${b}`;explanation=`${a} + ${b} = ${answer}.`;}
+            else if(index===1){answer=a-b;expression=`${a} − ${b}`;explanation=`${a} − ${b} = ${answer}.`;}
+            else {a=rand(3,12);b=rand(3,9);answer=a*b;expression=`${a} × ${b}`;explanation=`${a} × ${b} = ${answer}.`;}
+            prompt='Resolva a operação e encontre o resultado:';
+            break;
+          case 3:
+          case 4:
+          case 5:
+            if(index===3){a=rand(3,12);b=rand(2,10);c=rand(1,15);answer=a*b+c;expression=`${a} × ${b} + ${c}`;explanation=`Primeiro, ${a} × ${b} = ${a*b}; depois, somamos ${c} e obtemos ${answer}.`;}
+            else if(index===4){b=rand(3,12);answer=rand(3,12);a=b*answer;expression=`${a} ÷ ${b}`;explanation=`${a} dividido por ${b} é igual a ${answer}.`;}
+            else {a=rand(2,8);b=rand(2,8);c=rand(2,6);answer=(a+b)*c;expression=`(${a} + ${b}) × ${c}`;explanation=`Resolva os parênteses: ${a+b} × ${c} = ${answer}.`;}
+            prompt='Aplique a ordem correta das operações:';
+            break;
+          case 6:
+          case 7:
+          case 8:
+            if(index===6){a=rand(10,30)*5; b=rand(10,40);answer=a*b/100;expression=`${b}% de ${a}`;explanation=`${b}/100 × ${a} = ${answer}.`;prompt='Uma loja oferece um desconto percentual. Qual é o valor correspondente a essa porcentagem?';}
+            else if(index===7){a=rand(2,8);b=rand(2,9);answer=a*b;expression=`x = ${a} × ${b}`;explanation=`Multiplicando ${a} por ${b}, encontramos x = ${answer}.`;prompt='Uma grandeza varia proporcionalmente. Determine o valor de x:';}
+            else {a=rand(2,9);b=rand(1,15);c=rand(2,8);answer=a*c+b;expression=`f(${c}) = ${a} · ${c} + ${b}`;explanation=`Substituindo x por ${c}: ${a} × ${c} + ${b} = ${answer}.`;prompt='Considere a função definida por f(x) = ' + a + 'x + ' + b + '. Qual é o valor de f(' + c + ')?';}
+            break;
+          case 9:
+          case 10:
+          case 11:
+            if(index===9){a=rand(4,12);b=rand(5,15);answer=a*b;expression=`A = ${a} × ${b}`;explanation=`A área do retângulo é base × altura: ${a} × ${b} = ${answer} unidades².`;prompt='Uma sala retangular mede ' + a + ' m de comprimento e ' + b + ' m de largura. Qual é sua área?';}
+            else if(index===10){a=rand(3,9)*10;b=rand(2,5);answer=a*b;expression=`d = ${a} × ${b}`;explanation=`Distância = velocidade × tempo = ${a} × ${b} = ${answer} km.`;prompt='Um veículo mantém velocidade média de ' + a + ' km/h durante ' + b + ' horas. Quantos quilômetros percorre?';}
+            else {a=rand(4,10)*2;b=rand(10,30);c=rand(10,30);answer=(a+b+c)/3;expression=`M = (${a} + ${b} + ${c}) ÷ 3`;explanation=`A média é a soma dos valores dividida por 3: ${a+b+c} ÷ 3 = ${answer}.`;prompt='As notas de um estudante foram ' + a + ', ' + b + ' e ' + c + '. Qual foi a média aritmética?';}
+            break;
+          case 12:
+          case 13:
+          default:
+            if(index===12){a=rand(2,5)*10;b=rand(10,30);answer=a*(100-b)/100;expression=`Preço final = ${money(a)} − ${b}%`;explanation=`O desconto é ${b}% de ${a}, ou ${a*b/100}. Assim, o preço final é ${answer}.`;prompt='Em uma promoção, um produto de ' + money(a) + ' recebe desconto de ' + b + '%. Qual é o preço final?';}
+            else if(index===13){a=rand(3,8);b=rand(2,6);c=rand(5,20);answer=a*b+c;expression=`C = ${c} + ${a} × ${b}`;explanation=`A tarifa fixa é ${c} e a parte variável é ${a} × ${b} = ${a*b}. Total: ${answer}.`;prompt='Um serviço cobra taxa fixa de ' + money(c) + ' mais ' + money(a) + ' por unidade. Para ' + b + ' unidades, qual é o custo total?';}
+            else {a=rand(3,8);b=rand(2,6);c=rand(2,5);answer=a*b*c;expression=`V = ${a} × ${b} × ${c}`;explanation=`O volume é comprimento × largura × altura: ${a} × ${b} × ${c} = ${answer} unidades³.`;prompt='Uma caixa tem ' + a + ' cm de comprimento, ' + b + ' cm de largura e ' + c + ' cm de altura. Qual é seu volume?';}
+            break;
         }
-        return {expression,answer,level};
+        const levelNames=['Fundamentos','Operações','Álgebra e porcentagem','Problemas aplicados','Interpretação ENEM'];
+        return {expression,answer,level,prompt,explanation,levelName:levelNames[level-1]};
+      }
+
+      function makeChoices(answer) {
+        const choices = new Set([answer]);
+        const base = Math.max(3, Math.round(Math.abs(answer) * 0.12));
+        let attempts = 0;
+        while(choices.size < 4 && attempts < 100) {
+          attempts++;
+          const offset = rand(1,base+5);
+          const candidate = answer + (Math.random()<.5?-offset:offset);
+          if(candidate >= 0 && candidate !== answer) choices.add(candidate);
+        }
+        let fallback=1;
+        while(choices.size<4){if(!choices.has(answer+fallback))choices.add(answer+fallback);fallback++;}
+        return shuffle([...choices]);
       }
 
       function renderQuestion() {
@@ -118,39 +160,34 @@ button{font:inherit}.app{width:min(100%,690px);position:relative}
         const q=makeQuestion(question); currentAnswer=q.answer;
         $('current').textContent=question+1;
         $('score').textContent=score;
-        $('level').textContent='Nível '+q.level;
+        $('level').textContent='Nível '+q.level+' · '+q.levelName;
         $('progress').style.width=(question/TOTAL*100)+'%';
-        equationEl.innerHTML=q.expression+' <span class="equals">= ?</span>';
-        $('hint').textContent='Escolha uma das quatro alternativas';
+        $('questionPrompt').textContent=q.prompt;
+        equationEl.textContent=q.expression+' = ?';
+        $('hint').textContent='Escolha a alternativa correta';
         $('feedback').textContent=''; $('feedback').className='feedback';
-        let choices=new Set([q.answer]);
-        while(choices.size<4) {
-          const offset=rand(1,Math.max(5,Math.ceil(Math.abs(q.answer)*.35)));
-          choices.add(q.answer+(Math.random()<.5?-offset:offset));
-        }
-        const ordered=shuffle([...choices]);
         answersEl.innerHTML='';
-        ordered.forEach((value,i)=>{
+        makeChoices(q.answer).forEach((value,i)=>{
           const btn=document.createElement('button');
-          btn.type='button';btn.className='answer';btn.textContent=value;
+          btn.type='button';btn.className='answer';btn.textContent=Number.isInteger(value)?value:value.toLocaleString('pt-BR');
           btn.setAttribute('aria-label','Alternativa '+(i+1)+': '+value);
-          btn.addEventListener('click',()=>choose(value,btn));
+          btn.addEventListener('click',()=>choose(value,btn,q));
           answersEl.appendChild(btn);
         });
       }
 
-      function choose(value,button) {
+      function choose(value,button,q) {
         if(locked)return;
         if(value===currentAnswer) {
           locked=true;score++;button.classList.add('correct');
-          $('feedback').textContent='✓ Muito bem! Próxima questão...';
+          $('feedback').textContent='✓ Correto! '+q.explanation;
           $('feedback').className='feedback good';
           $('score').textContent=score;
           [...answersEl.children].forEach(b=>b.disabled=true);
-          window.setTimeout(()=>{question++;if(question>=TOTAL)finish();else renderQuestion();},650);
+          window.setTimeout(()=>{question++;if(question>=TOTAL)finish();else renderQuestion();},1500);
         } else {
           button.classList.add('wrong');button.disabled=true;
-          $('feedback').textContent='Não foi dessa vez! Tente outra alternativa.';
+          $('feedback').textContent='Ainda não! Analise as alternativas restantes.';
           $('feedback').className='feedback bad';
         }
       }
@@ -159,7 +196,7 @@ button{font:inherit}.app{width:min(100%,690px);position:relative}
         $('game').classList.add('hidden');$('result').classList.remove('hidden');
         $('progress').style.width='100%';
         $('final-score').textContent=score+'/'+TOTAL;
-        $('result-message').textContent=score===TOTAL?'Perfeito! Você acertou todas as questões.':score>=7?'Mandou muito bem! Continue praticando para chegar a 10.':score>=4?'Bom trabalho! Pratique mais um pouco e tente novamente.':'Não desanime! Cada tentativa é uma oportunidade de aprender.';
+        $('result-message').textContent=score===TOTAL?'Excelente! Você dominou todos os níveis, inclusive os desafios inspirados no ENEM.':score>=12?'Ótimo desempenho! Você chegou aos desafios de nível ENEM.':score>=8?'Bom trabalho! Continue praticando interpretação e resolução de problemas.':'Não desanime! Revise as explicações e tente novamente para avançar nos níveis.';
       }
 
       $('restart').addEventListener('click',()=>{question=0;score=0;$('result').classList.add('hidden');$('game').classList.remove('hidden');renderQuestion();});
