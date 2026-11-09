@@ -58,7 +58,7 @@ button{font:inherit}.app{width:min(100%,690px);position:relative}
     <section class="card" aria-live="polite">
       <div id="game">
         <div class="stats">
-          <div class="stat"><div class="stat-label">Questão</div><div class="stat-value"><span id="current">1</span><span style="color:var(--muted)"> / 15</span></div><div class="progress-wrap"><div class="progress" id="progress"></div></div></div>
+          <div class="stat"><div class="stat-label">Questão</div><div class="stat-value"><span id="current">1</span><span style="color:var(--muted)"> / 35</span></div><div class="progress-wrap"><div class="progress" id="progress"></div></div></div>
           <div class="level" id="level">Nível 1</div>
           <div class="stat"><div class="stat-label">Pontos</div><div class="stat-value"><span id="score">0</span> <span style="font-size:14px;color:var(--yellow)">★</span></div></div>
         </div>
@@ -84,125 +84,140 @@ button{font:inherit}.app{width:min(100%,690px);position:relative}
     </section>
   </main>
   <script>
-    (() => {
-      const TOTAL = 15;
-      let question = 0, score = 0, currentAnswer = 0, locked = false;
-      const $ = id => document.getElementById(id);
-      const equationEl = $('equation'), answersEl = $('answers');
-      const rand = (min,max) => Math.floor(Math.random()*(max-min+1))+min;
-      const shuffle = arr => arr.sort(() => Math.random()-.5);
-      const money = n => 'R$ ' + n.toLocaleString('pt-BR');
+(() => {
+  const TOTAL = 35;
+  const LEVELS = ['Fundamentos','Proporção e álgebra','Funções e geometria plana','Geometria e sequências','ENEM: finanças, contagem e dados'];
+  let question = 0, score = 0, currentAnswer = 0, locked = false, questions = [];
+  const $ = id => document.getElementById(id);
+  const equationEl = $('equation'), answersEl = $('answers');
+  const rand = (min,max) => Math.floor(Math.random()*(max-min+1))+min;
+  const shuffle = arr => arr.sort(() => Math.random()-.5);
+  const round = n => Math.round((n + Number.EPSILON) * 100) / 100;
+  const fmt = n => Number.isInteger(round(n)) ? String(round(n)) : round(n).toLocaleString('pt-BR',{maximumFractionDigits:2});
+  const money = n => 'R$ ' + round(n).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const make = (level,topic,prompt,expression,answer,explanation) => ({level,topic,prompt,expression,answer:round(answer),explanation});
 
-      function makeQuestion(index) {
-        const level = Math.min(5, Math.floor(index / 3) + 1);
-        let a,b,c,answer,expression,prompt,explanation;
-        switch(index) {
-          case 0:
-          case 1:
-          case 2:
-            a=rand(12,45); b=rand(4,25);
-            if(index===0){answer=a+b;expression=`${a} + ${b}`;explanation=`${a} + ${b} = ${answer}.`;}
-            else if(index===1){answer=a-b;expression=`${a} − ${b}`;explanation=`${a} − ${b} = ${answer}.`;}
-            else {a=rand(3,12);b=rand(3,9);answer=a*b;expression=`${a} × ${b}`;explanation=`${a} × ${b} = ${answer}.`;}
-            prompt='Resolva a operação e encontre o resultado:';
-            break;
-          case 3:
-          case 4:
-          case 5:
-            if(index===3){a=rand(3,12);b=rand(2,10);c=rand(1,15);answer=a*b+c;expression=`${a} × ${b} + ${c}`;explanation=`Primeiro, ${a} × ${b} = ${a*b}; depois, somamos ${c} e obtemos ${answer}.`;}
-            else if(index===4){b=rand(3,12);answer=rand(3,12);a=b*answer;expression=`${a} ÷ ${b}`;explanation=`${a} dividido por ${b} é igual a ${answer}.`;}
-            else {a=rand(2,8);b=rand(2,8);c=rand(2,6);answer=(a+b)*c;expression=`(${a} + ${b}) × ${c}`;explanation=`Resolva os parênteses: ${a+b} × ${c} = ${answer}.`;}
-            prompt='Aplique a ordem correta das operações:';
-            break;
-          case 6:
-          case 7:
-          case 8:
-            if(index===6){a=rand(10,30)*5; b=rand(10,40);answer=a*b/100;expression=`${b}% de ${a}`;explanation=`${b}/100 × ${a} = ${answer}.`;prompt='Uma loja oferece um desconto percentual. Qual é o valor correspondente a essa porcentagem?';}
-            else if(index===7){a=rand(2,8);b=rand(2,9);answer=a*b;expression=`x = ${a} × ${b}`;explanation=`Multiplicando ${a} por ${b}, encontramos x = ${answer}.`;prompt='Uma grandeza varia proporcionalmente. Determine o valor de x:';}
-            else {a=rand(2,9);b=rand(1,15);c=rand(2,8);answer=a*c+b;expression=`f(${c}) = ${a} · ${c} + ${b}`;explanation=`Substituindo x por ${c}: ${a} × ${c} + ${b} = ${answer}.`;prompt='Considere a função definida por f(x) = ' + a + 'x + ' + b + '. Qual é o valor de f(' + c + ')?';}
-            break;
-          case 9:
-          case 10:
-          case 11:
-            if(index===9){a=rand(4,12);b=rand(5,15);answer=a*b;expression=`A = ${a} × ${b}`;explanation=`A área do retângulo é base × altura: ${a} × ${b} = ${answer} unidades².`;prompt='Uma sala retangular mede ' + a + ' m de comprimento e ' + b + ' m de largura. Qual é sua área?';}
-            else if(index===10){a=rand(3,9)*10;b=rand(2,5);answer=a*b;expression=`d = ${a} × ${b}`;explanation=`Distância = velocidade × tempo = ${a} × ${b} = ${answer} km.`;prompt='Um veículo mantém velocidade média de ' + a + ' km/h durante ' + b + ' horas. Quantos quilômetros percorre?';}
-            else {a=rand(4,10)*2;b=rand(10,30);c=rand(10,30);answer=(a+b+c)/3;expression=`M = (${a} + ${b} + ${c}) ÷ 3`;explanation=`A média é a soma dos valores dividida por 3: ${a+b+c} ÷ 3 = ${answer}.`;prompt='As notas de um estudante foram ' + a + ', ' + b + ' e ' + c + '. Qual foi a média aritmética?';}
-            break;
-          case 12:
-          case 13:
-          default:
-            if(index===12){a=rand(2,5)*10;b=rand(10,30);answer=a*(100-b)/100;expression=`Preço final = ${money(a)} − ${b}%`;explanation=`O desconto é ${b}% de ${a}, ou ${a*b/100}. Assim, o preço final é ${answer}.`;prompt='Em uma promoção, um produto de ' + money(a) + ' recebe desconto de ' + b + '%. Qual é o preço final?';}
-            else if(index===13){a=rand(3,8);b=rand(2,6);c=rand(5,20);answer=a*b+c;expression=`C = ${c} + ${a} × ${b}`;explanation=`A tarifa fixa é ${c} e a parte variável é ${a} × ${b} = ${a*b}. Total: ${answer}.`;prompt='Um serviço cobra taxa fixa de ' + money(c) + ' mais ' + money(a) + ' por unidade. Para ' + b + ' unidades, qual é o custo total?';}
-            else {a=rand(3,8);b=rand(2,6);c=rand(2,5);answer=a*b*c;expression=`V = ${a} × ${b} × ${c}`;explanation=`O volume é comprimento × largura × altura: ${a} × ${b} × ${c} = ${answer} unidades³.`;prompt='Uma caixa tem ' + a + ' cm de comprimento, ' + b + ' cm de largura e ' + c + ' cm de altura. Qual é seu volume?';}
-            break;
-        }
-        const levelNames=['Fundamentos','Operações','Álgebra e porcentagem','Problemas aplicados','Interpretação ENEM'];
-        return {expression,answer,level,prompt,explanation,levelName:levelNames[level-1]};
-      }
+  const generators = [
+    // Nível 1 — fundamentos
+    () => {const a=rand(2,8), b=rand(2,5), n=a*rand(3,8); return make(1,'Frações','Uma receita usa '+a+'/'+b+' de xícara de farinha por porção. Para '+n+' porções, quantas xícaras serão necessárias?','(' + a + '/' + b + ') × ' + n,n*a/b,'Multiplicamos a fração pelo número de porções: ('+a+'/'+b+') × '+n+' = '+fmt(n*a/b)+' xícaras.');},
+    () => {const a=rand(12,45),b=rand(10,90); return make(1,'Decimais','Uma pessoa caminhou '+fmt(a/10)+' km pela manhã e '+fmt(b/10)+' km à tarde. Qual foi a distância total?',''+fmt(a/10)+' + '+fmt(b/10),a/10+b/10,'Somando as distâncias: '+fmt(a/10)+' + '+fmt(b/10)+' = '+fmt((a+b)/10)+' km.');},
+    () => {const a=rand(3,12),b=rand(4,15);let x=a,y=b;while(y){const t=y;y=x%y;x=t;}const ans=a*b/x;return make(1,'MMC','Dois alarmes tocam a cada '+a+' e '+b+' minutos. Se tocaram juntos agora, em quantos minutos voltarão a tocar juntos?','MMC ('+a+', '+b+')',ans,'O mínimo múltiplo comum de '+a+' e '+b+' é '+ans+'.');},
+    () => {const a=rand(3,8),b=rand(3,9),unit=rand(2,6);return make(1,'MDC','Uma escola tem '+(a*unit)+' lápis e '+(b*unit)+' borrachas. Quer montar kits idênticos, sem sobras, com a maior quantidade possível de kits. Quantos kits pode montar?','MDC ('+(a*unit)+', '+(b*unit)+')',unit* (function(x,y){while(y){const t=y;y=x%y;x=t;}return x;})(a,b),'O MDC de '+(a*unit)+' e '+(b*unit)+' é '+(unit*(function(x,y){while(y){const t=y;y=x%y;x=t;}return x;})(a,b))+', que determina o maior número de kits.');},
+    () => {const price=rand(8,30)*10,p=rand(5,4)*5;return make(1,'Porcentagem','Um produto custa '+money(price)+' e recebe desconto de '+p+'%. Qual é o valor do desconto?',''+p+'% de '+money(price),price*p/100,'Calculamos '+price+' × '+p+'/100 = '+money(price*p/100)+'.');},
+    () => {const a=rand(2,5),b=rand(3,7),k=rand(2,8);return make(1,'Razão e proporção','Uma mistura usa '+a+' copos de concentrado para '+b+' copos de água. Mantendo a proporção, quantos copos de água são necessários para '+(a*k)+' copos de concentrado?',''+a+':'+b+' = '+(a*k)+': x',(b*k),'A razão foi multiplicada por '+k+'. Portanto, '+b+' × '+k+' = '+b*k+' copos.');},
+    () => {const a=rand(4,12),b=rand(3,10),k=rand(2,6);return make(1,'Operações','Uma papelaria vende '+a+' cadernos por R$ '+b+'. Quanto custam '+(a*k)+' cadernos pelo mesmo preço unitário?',''+a+' cadernos → '+money(b*k),b*k,'O preço unitário é '+money(b/a)+'. Para '+a*k+' cadernos, o total é '+money(b*k)+'.');},
 
-      function makeChoices(answer) {
-        const choices = new Set([answer]);
-        const base = Math.max(3, Math.round(Math.abs(answer) * 0.12));
-        let attempts = 0;
-        while(choices.size < 4 && attempts < 100) {
-          attempts++;
-          const offset = rand(1,base+5);
-          const candidate = answer + (Math.random()<.5?-offset:offset);
-          if(candidate >= 0 && candidate !== answer) choices.add(candidate);
-        }
-        let fallback=1;
-        while(choices.size<4){if(!choices.has(answer+fallback))choices.add(answer+fallback);fallback++;}
-        return shuffle([...choices]);
-      }
+    // Nível 2 — proporcionalidade e álgebra
+    () => {const h=rand(2,8),rate=rand(3,9),target=h*rand(2,5);return make(2,'Regra de três','Uma máquina produz '+(h*rate)+' peças em '+h+' horas. Mantendo o ritmo, quantas peças produzirá em '+target+' horas?',''+(h*rate)+' peças / '+h+' h',rate*target,'A produção é diretamente proporcional ao tempo: '+rate+' peças por hora × '+target+' horas = '+rate*target+'.');},
+    () => {const workers=rand(2,5),days=rand(6,15),more=workers*rand(2,4);return make(2,'Grandezas inversas',''+workers+' trabalhadores concluem uma tarefa em '+days+' dias. No mesmo ritmo, em quantos dias '+more+' trabalhadores fariam a tarefa?',''+workers+' × '+days+' = '+more+' × x',workers*days/more,'Como mais trabalhadores reduzem o tempo, a relação é inversamente proporcional: '+workers+' × '+days+' ÷ '+more+' = '+fmt(workers*days/more)+' dias.');},
+    () => {const real=rand(2,8)*1000,scale=rand(2,5)*10000,cm=rand(3,9);return make(2,'Escalas','Em um mapa de escala 1:'+scale+', a distância entre duas cidades é '+cm+' cm. Qual é a distância real em quilômetros?',''+cm+' × '+scale+' cm',cm*scale/100000,'A distância real é '+(cm*scale)+' cm. Dividindo por 100.000, obtemos '+fmt(cm*scale/100000)+' km.');},
+    () => {const m=rand(2,8),b=rand(1,12),x=rand(2,9);return make(2,'Função afim','Uma corrida de aplicativo cobra taxa fixa de R$ '+b+' mais R$ '+m+' por quilômetro. Qual o preço de uma corrida de '+x+' km?','f(x) = '+m+'x + '+b,m*x+b,'Substituindo x = '+x': '+m+' × '+x+' + '+b+' = R$ '+(m*x+b)+'.');},
+    () => {const x=rand(3,12),b=rand(2,15),a=rand(2,7),rhs=a*x+b;return make(2,'Equação do 1º grau','Uma compra é representada por '+a+'x + '+b+' = '+rhs+'. Qual é o valor de x?',''+a+'x + '+b+' = '+rhs,x,'Isolando x: '+a+'x = '+(rhs-b)+'; então x = '+x+'.');},
+    () => {const x=rand(2,8),y=rand(1,7),a=rand(1,4),b=rand(1,4),c=a*x+b*y,d=rand(1,4)*x+rand(1,4)*y;return make(2,'Sistemas lineares','Em um sistema, as incógnitas representam quantidades de dois produtos. Sabendo que x + y = '+(x+y)+' e x − y = '+(x-y)+', qual é x?','x + y = '+(x+y)+'; x − y = '+(x-y),x,'Somando as equações: 2x = '+(2*x)+'. Logo, x = '+x+'.');},
+    () => {const r=rand(2,9),x=rand(2,7),b=rand(1,8),c=x*x-r*r;const ans=x;return make(2,'Função quadrática','A altura de um objeto é dada por h(t) = −t² + '+(2*x)+'t + b+'. Em qual instante ocorre a altura máxima?','t do vértice = −B/(2A)',x,'Na parábola, o vértice ocorre em t = −B/(2A). Aqui, t = −'+(2*x)+'/(2 × −1) = '+x+'.');},
 
-      function renderQuestion() {
-        locked=false;
-        const q=makeQuestion(question); currentAnswer=q.answer;
-        $('current').textContent=question+1;
-        $('score').textContent=score;
-        $('level').textContent='Nível '+q.level+' · '+q.levelName;
-        $('progress').style.width=(question/TOTAL*100)+'%';
-        $('questionPrompt').textContent=q.prompt;
-        equationEl.textContent=q.expression+' = ?';
-        $('hint').textContent='Escolha a alternativa correta';
-        $('feedback').textContent=''; $('feedback').className='feedback';
-        answersEl.innerHTML='';
-        makeChoices(q.answer).forEach((value,i)=>{
-          const btn=document.createElement('button');
-          btn.type='button';btn.className='answer';btn.textContent=Number.isInteger(value)?value:value.toLocaleString('pt-BR');
-          btn.setAttribute('aria-label','Alternativa '+(i+1)+': '+value);
-          btn.addEventListener('click',()=>choose(value,btn,q));
-          answersEl.appendChild(btn);
-        });
-      }
+    // Nível 3 — funções e geometria plana
+    () => {const base=rand(2,5),power=rand(2,4);return make(3,'Função exponencial','Uma população de bactérias dobra a cada hora. Se começa com '+base+' bactérias, quantas haverá após '+power+' horas?',''+base+' × 2^'+power,base*Math.pow(2,power),'Crescimento exponencial: '+base+' × 2^'+power+' = '+base*Math.pow(2,power)+' bactérias.');},
+    () => {const hyp=rand(5,13)*2,angle=30;const ans=hyp/2;return make(3,'Trigonometria: seno','Uma rampa forma um ângulo de 30° com o chão e tem '+hyp+' m de comprimento. Qual é a altura atingida? (Use sen 30° = 0,5.)','sen 30° = altura / '+hyp,ans,'sen 30° = 0,5. Assim, altura = '+hyp+' × 0,5 = '+ans+' m.');},
+    () => {const hyp=rand(4,12)*5;return make(3,'Trigonometria: cosseno','Uma escada de '+hyp+' m está apoiada no chão, formando 60° com ele. Qual distância horizontal ela alcança? (Use cos 60° = 0,5.)','cos 60° = distância / '+hyp,hyp/2,'cos 60° = 0,5. A distância horizontal é '+hyp+' × 0,5 = '+hyp/2+' m.');},
+    () => {const small=rand(2,6),factor=rand(2,5),side=rand(3,8);return make(3,'Semelhança de triângulos','Dois triângulos semelhantes têm lados correspondentes '+factor+' vezes maiores no segundo. Se um lado do primeiro mede '+side+' cm, quanto mede o correspondente no segundo?',''+side+' × '+factor,side*factor,'Em figuras semelhantes, os lados correspondentes mantêm a razão: '+side+' × '+factor+' = '+side*factor+' cm.');},
+    () => {const w=rand(4,12),h=rand(3,10);return make(3,'Área de figuras planas','Um terreno retangular mede '+w+' m por '+h+' m. Qual é sua área?','A = base × altura',w*h,'A área do retângulo é '+w+' × '+h+' = '+w*h+' m².');},
+    () => {const r=rand(2,10);return make(3,'Circunferência','Uma praça circular tem raio de '+r+' m. Qual é aproximadamente o comprimento da circunferência? (Use π = 3,14.)','C = 2 × π × '+r,2*3.14*r,'O comprimento é 2πr = 2 × 3,14 × '+r+' = '+fmt(2*3.14*r)+' m.');},
+    () => {const side=rand(3,9);return make(3,'Polígonos','Qual é a soma dos ângulos internos de um hexágono?','S = (n − 2) × 180°', (6-2)*180,'Para um hexágono, n = 6. Então S = (6 − 2) × 180° = 720°.');},
 
-      function choose(value,button,q) {
-        if(locked)return;
-        if(value===currentAnswer) {
-          locked=true;score++;button.classList.add('correct');
-          $('feedback').textContent='✓ Correto! '+q.explanation;
-          $('feedback').className='feedback good';
-          $('score').textContent=score;
-          [...answersEl.children].forEach(b=>b.disabled=true);
-          window.setTimeout(()=>{question++;if(question>=TOTAL)finish();else renderQuestion();},1500);
-        } else {
-          button.classList.add('wrong');button.disabled=true;
-          $('feedback').textContent='Ainda não! Analise as alternativas restantes.';
-          $('feedback').className='feedback bad';
-        }
-      }
+    // Nível 4 — geometria espacial e sequências
+    () => {const r=rand(2,6),h=rand(3,10);return make(4,'Cilindros','Um reservatório cilíndrico tem raio '+r+' m e altura '+h+' m. Qual é seu volume aproximado? (Use π = 3,14.)','V = π × '+r+'² × '+h,3.14*r*r*h,'V = πr²h = 3,14 × '+r+'² × '+h+' = '+fmt(3.14*r*r*h)+' m³.');},
+    () => {const a=rand(2,8),b=rand(3,9),h=rand(2,7);return make(4,'Prismas','Um prisma reto tem base retangular de '+a+' cm por '+b+' cm e altura '+h+' cm. Qual é seu volume?','V = área da base × altura',a*b*h,'A base mede '+a*b+' cm². O volume é '+a*b+' × '+h+' = '+a*b*h+' cm³.');},
+    () => {const a=rand(3,10),h=rand(3,12);return make(4,'Pirâmides','Uma pirâmide tem área da base de '+(a*a)+' cm² e altura '+h+' cm. Qual é seu volume?','V = (Ab × h) / 3',(a*a*h)/3,'O volume da pirâmide é (área da base × altura) ÷ 3 = '+(a*a*h)+' ÷ 3 = '+fmt(a*a*h/3)+' cm³.');},
+    () => {const r=rand(2,7),h=rand(3,10);return make(4,'Cones','Um cone possui raio '+r+' cm e altura '+h+' cm. Qual é o volume aproximado? (Use π = 3,14.)','V = (π × '+r+'² × '+h+') / 3',3.14*r*r*h/3,'V = πr²h/3 = 3,14 × '+r+'² × '+h+' ÷ 3 = '+fmt(3.14*r*r*h/3)+' cm³.');},
+    () => {const r=rand(2,6);return make(4,'Esferas','Uma esfera tem raio '+r+' cm. Qual é seu volume aproximado? (Use π = 3,14.)','V = 4 × π × '+r+'³ / 3',4*3.14*r*r*r/3,'Aplicando V = 4πr³/3, obtemos '+fmt(4*3.14*r*r*r/3)+' cm³.');},
+    () => {const x1=rand(1,6),y1=rand(1,6),dx=rand(3,8),dy=rand(3,8);return make(4,'Geometria analítica','Em um plano cartesiano, a distância horizontal entre A e B é '+dx+' e a vertical é '+dy+'. Qual é a distância entre os pontos?','d = √('+dx+'² + '+dy+'²)',Math.sqrt(dx*dx+dy*dy),'Pelo teorema de Pitágoras, d = √('+dx*dx+' + '+dy*dy+') = '+fmt(Math.sqrt(dx*dx+dy*dy))+'.');},
+    () => {const a=rand(2,8),d=rand(2,6),n=rand(5,12);return make(4,'Progressão aritmética','Uma sequência começa em '+a+' e aumenta '+d+' unidades a cada termo. Qual é o '+n+'º termo?','aₙ = a₁ + (n − 1)r',a+(n-1)*d,'Na PA, aₙ = '+a+' + ('+n+' − 1) × '+d+' = '+(a+(n-1)*d)+'.');},
 
-      function finish() {
-        $('game').classList.add('hidden');$('result').classList.remove('hidden');
-        $('progress').style.width='100%';
-        $('final-score').textContent=score+'/'+TOTAL;
-        $('result-message').textContent=score===TOTAL?'Excelente! Você dominou todos os níveis, inclusive os desafios inspirados no ENEM.':score>=12?'Ótimo desempenho! Você chegou aos desafios de nível ENEM.':score>=8?'Bom trabalho! Continue praticando interpretação e resolução de problemas.':'Não desanime! Revise as explicações e tente novamente para avançar nos níveis.';
-      }
+    // Nível 5 — estilo ENEM: finanças, contagem, probabilidade e estatística
+    () => {const a=rand(2,8),ratio=rand(2,3),n=rand(4,7);return make(5,'Progressão geométrica','Uma população de microrganismos é multiplicada por '+ratio+' a cada etapa. Se começa com '+a+' unidades, quantas haverá na '+n+'ª etapa, considerando a primeira como o valor inicial?','aₙ = '+a+' × '+ratio+'^'+(n-1),a*Math.pow(ratio,n-1),'Na PG, aₙ = a₁ × q^(n−1) = '+a+' × '+ratio+'^'+(n-1)+' = '+a*Math.pow(ratio,n-1)+'.');},
+    () => {const capital=rand(5,20)*100,rate=rand(2,8),months=rand(3,12);return make(5,'Juros simples','Uma pessoa investe '+money(capital) +' a juros simples de '+rate+'% ao mês durante '+months+' meses. Quanto recebe apenas de juros?','J = C × i × t',capital*(rate/100)*months,'J = '+money(capital)+' × '+rate+'% × '+months+' = '+money(capital*rate/100*months)+' de juros.');},
+    () => {const capital=rand(5,15)*100,rate=10,months=2;return make(5,'Juros compostos','Um investimento de '+money(capital)+' rende 10% ao mês, em juros compostos, durante 2 meses. Qual será o montante final?','M = C × (1 + i)^t',capital*1.1*1.1,'M = '+money(capital)+' × 1,1² = '+money(capital*1.21)+'.');},
+    () => {const total=rand(4,9)*100,parts=rand(4,8);return make(5,'Parcelamento e amortização','Uma compra de '+money(total)+' será dividida em '+parts+' parcelas iguais, sem juros. Qual será o valor de cada parcela?','Parcela = '+money(total)+' ÷ '+parts,total/parts,'Sem juros, dividimos o total pelo número de parcelas: '+money(total)+' ÷ '+parts+' = '+money(total/parts)+'.');},
+    () => {const shirts=rand(3,6),pants=rand(2,5),ways=shirts*pants;return make(5,'Princípio fundamental da contagem','Uma pessoa possui '+shirts+' camisetas e '+pants+' calças. Quantos conjuntos diferentes pode formar escolhendo uma peça de cada tipo?',''+shirts+' × '+pants,ways,'Pelo princípio fundamental da contagem, multiplicamos as possibilidades: '+shirts+' × '+pants+' = '+ways+'.');},
+    () => {const n=rand(4,7);let fact=1;for(let i=2;i<=n;i++)fact*=i;return make(5,'Permutação','De quantas maneiras diferentes '+n+' livros distintos podem ser organizados em uma prateleira?','P = '+n+'!',fact,'A quantidade de permutações é '+n+'! = '+fact+'.');},
+    () => {const red=rand(2,5),blue=rand(3,7),total=red+blue;return make(5,'Probabilidade','Uma urna contém '+red+' bolas vermelhas e '+blue+' azuis. Ao retirar uma bola ao acaso, qual é a probabilidade de ela ser vermelha, em porcentagem?','P = '+red+' / '+total+' × 100%',100*red/total,'Casos favoráveis ÷ casos possíveis = '+red+'/'+total+' × 100% = '+fmt(100*red/total)+'%.');},
+    () => {const vals=[rand(4,8),rand(9,13),rand(14,18),rand(19,23)];const ans=vals.reduce((s,v)=>s+v,0)/4;return make(5,'Estatística: média','Uma turma registrou os seguintes tempos de resolução (em minutos): '+vals.join(', ')+'. Qual foi o tempo médio?','M = ('+vals.join(' + ')+') ÷ 4',ans,'Somamos os quatro tempos ('+vals.reduce((s,v)=>s+v,0)+') e dividimos por 4: '+fmt(ans)+' minutos.');},
+    () => {const vals=[2,4,6,8].map(v=>v+rand(0,4));const mean=vals.reduce((s,v)=>s+v,0)/4;const variance=vals.reduce((s,v)=>s+Math.pow(v-mean,2),0)/4;return make(5,'Dispersão de dados','Considere os dados '+vals.join(', ')+'. Qual é a amplitude total, isto é, a diferença entre o maior e o menor valor?','Amplitude = maior − menor',Math.max(...vals)-Math.min(...vals),'A amplitude é '+Math.max(...vals)+' − '+Math.min(...vals)+' = '+(Math.max(...vals)-Math.min(...vals))+'.');},
+    () => {const total=rand(3,8)*10,part=rand(1,3);const values=[total-part,total,total+part];return make(5,'Leitura de dados','Uma tabela apresenta vendas de '+values.join(', ')+' unidades em três dias. Qual foi o total vendido?','Total = '+values.join(' + '),values.reduce((s,v)=>s+v,0),'Somando as vendas dos três dias: '+values.join(' + ')+' = '+values.reduce((s,v)=>s+v,0)+' unidades.');}
+  ];
 
-      $('restart').addEventListener('click',()=>{question=0;score=0;$('result').classList.add('hidden');$('game').classList.remove('hidden');renderQuestion();});
-      document.addEventListener('keydown',e=>{if(['1','2','3','4'].includes(e.key)&&!locked&&!$('game').classList.contains('hidden')){const btn=answersEl.children[Number(e.key)-1];if(btn&&!btn.disabled)btn.click();}});
-      renderQuestion();
-    })();
-  </script>
+  function createGame() {
+    const grouped = [1,2,3,4,5].map(level => shuffle(generators.filter((_,i) => {
+      const ranges = [[0,6],[7,13],[14,20],[21,27],[28,34]][level-1];
+      return i >= ranges[0] && i <= ranges[1];
+    }).map(fn => fn())));
+    questions = grouped.flat();
+  }
+
+  function makeChoices(answer) {
+    const choices = new Set([round(answer)]);
+    const base = Math.max(2, Math.abs(answer)*0.12);
+    let tries=0;
+    while(choices.size<4 && tries<150) {
+      tries++;
+      const delta = base*(0.35+Math.random()*1.5);
+      const candidate=round(answer+(Math.random()<.5?-delta:delta));
+      if(candidate>=0 && candidate!==round(answer)) choices.add(candidate);
+    }
+    let offset=1;
+    while(choices.size<4){const candidate=round(answer+offset);if(!choices.has(candidate))choices.add(candidate);offset++;}
+    return shuffle([...choices]);
+  }
+
+  function renderQuestion() {
+    locked=false;
+    const q=questions[question];currentAnswer=q.answer;
+    $('current').textContent=question+1;
+    $('score').textContent=score;
+    $('level').textContent='Nível '+q.level+' · '+LEVELS[q.level-1];
+    $('progress').style.width=(question/TOTAL*100)+'%';
+    $('questionPrompt').textContent=q.prompt;
+    equationEl.textContent=q.expression+' = ?';
+    $('hint').textContent=q.topic+' · escolha a alternativa correta';
+    $('feedback').textContent='';$('feedback').className='feedback';
+    answersEl.innerHTML='';
+    makeChoices(q.answer).forEach((value,i)=>{
+      const btn=document.createElement('button');
+      btn.type='button';btn.className='answer';btn.textContent=fmt(value);
+      btn.setAttribute('aria-label','Alternativa '+(i+1)+': '+fmt(value));
+      btn.addEventListener('click',()=>choose(value,btn,q));
+      answersEl.appendChild(btn);
+    });
+  }
+
+  function choose(value,button,q) {
+    if(locked)return;
+    if(round(value)===round(currentAnswer)) {
+      locked=true;score++;button.classList.add('correct');
+      $('feedback').textContent='✓ Correto! '+q.explanation;
+      $('feedback').className='feedback good';
+      $('score').textContent=score;
+      [...answersEl.children].forEach(b=>b.disabled=true);
+      window.setTimeout(()=>{question++;if(question>=TOTAL)finish();else renderQuestion();},1900);
+    } else {
+      button.classList.add('wrong');button.disabled=true;
+      $('feedback').textContent='Ainda não! Analise as alternativas restantes.';
+      $('feedback').className='feedback bad';
+    }
+  }
+
+  function finish() {
+    $('game').classList.add('hidden');$('result').classList.remove('hidden');
+    $('progress').style.width='100%';
+    $('final-score').textContent=score+'/'+TOTAL;
+    $('result-message').textContent=score===TOTAL?'Excelente! Você dominou todos os níveis do desafio ENEM.':score>=28?'Desempenho excelente! Você demonstrou domínio dos conteúdos.':score>=21?'Muito bom! Você avançou por todos os níveis e está no caminho certo.':score>=14?'Bom trabalho! Revise os assuntos em que teve dificuldade e tente novamente.':'Continue praticando! A cada tentativa você fortalece sua base matemática.';
+  }
+
+  $('restart').addEventListener('click',()=>{question=0;score=0;createGame();$('result').classList.add('hidden');$('game').classList.remove('hidden');renderQuestion();});
+  document.addEventListener('keydown',e=>{if(['1','2','3','4'].includes(e.key)&&!locked&&!$('game').classList.contains('hidden')){const btn=answersEl.children[Number(e.key)-1];if(btn&&!btn.disabled)btn.click();}});
+  createGame();renderQuestion();
+})();
+</script>
 </body>
 </html>
