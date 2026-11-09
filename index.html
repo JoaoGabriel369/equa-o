@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#101827">
+  <meta name="description" content="Desafie sua mente resolvendo equações em um quiz de matemática.">
+  <title>Equa-o | Desafio de Matemática</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap');
+    :root{color-scheme:dark;--bg:#0b1220;--panel:#121e30;--panel2:#19283d;--line:#293b53;--text:#f3f7fc;--muted:#91a3ba;--accent:#55e0b2;--accent2:#36b98e;--red:#ff777f;--yellow:#ffd166}
+    *{box-sizing:border-box}
+    body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 50% -15%,#1b3850 0,transparent 52%),var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;display:flex;align-items:center;justify-content:center;padding:28px 16px}
+    button{font:inherit}
+    .app{width:min(100%,650px)}
+    .top{display:flex;align-items:center;justify-content:space-between;margin-bottom:26px}
+    .brand{display:flex;align-items:center;gap:11px;font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:700;letter-spacing:-.8px}
+    .brand-mark{width:38px;height:38px;border-radius:12px;background:var(--accent);color:#09251d;display:grid;place-items:center;font-size:22px;font-weight:800}
+    .tag{font-size:12px;color:var(--muted);border:1px solid var(--line);padding:7px 11px;border-radius:99px}
+    .card{background:linear-gradient(155deg,rgba(25,40,61,.97),rgba(16,28,44,.98));border:1px solid var(--line);border-radius:24px;padding:clamp(22px,5vw,38px);box-shadow:0 24px 70px #0005}
+    .stats{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:14px;margin-bottom:28px}
+    .stat-label{font-size:11px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);font-weight:700}
+    .stat-value{font-family:'Space Grotesk',sans-serif;font-size:21px;font-weight:700;margin-top:3px}
+    .stat:last-child{text-align:right}
+    .progress-wrap{height:7px;background:#26364b;border-radius:10px;overflow:hidden;margin-top:10px}
+    .progress{height:100%;width:0;background:linear-gradient(90deg,var(--accent2),var(--accent));border-radius:10px;transition:width .35s ease}
+    .level{text-align:center;color:var(--accent);font-size:11px;font-weight:800;letter-spacing:1.7px;text-transform:uppercase}
+    .prompt{text-align:center;margin:32px 0 28px}
+    .prompt p{margin:0 0 15px;color:var(--muted);font-size:14px}
+    .equation{font-family:'Space Grotesk',sans-serif;font-size:clamp(39px,9vw,62px);font-weight:700;letter-spacing:-2px;line-height:1.2;overflow-wrap:anywhere}
+    .equation .equals{color:var(--accent)}
+    .hint{min-height:22px;text-align:center;font-size:13px;color:var(--muted);margin-top:13px}
+    .answers{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .answer{min-height:66px;border:1px solid var(--line);border-radius:14px;background:#17263a;color:var(--text);font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:700;cursor:pointer;transition:transform .16s,border-color .16s,background .16s}
+    .answer:hover:not(:disabled){transform:translateY(-2px);border-color:var(--accent);background:#1b3546}
+    .answer:focus-visible,.primary:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+    .answer.correct{background:#123b32;border-color:var(--accent);color:var(--accent)}
+    .answer.wrong{background:#40232d;border-color:var(--red);color:var(--red);animation:shake .25s}
+    .answer:disabled{cursor:default}
+    @keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+    .feedback{min-height:26px;text-align:center;margin:17px 0 0;font-size:14px;font-weight:700}
+    .feedback.good{color:var(--accent)}.feedback.bad{color:var(--red)}
+    .footer{display:flex;justify-content:space-between;align-items:center;margin-top:25px;color:var(--muted);font-size:12px}
+    .keyboard{border:1px solid var(--line);padding:4px 7px;border-radius:6px;color:#c4d0df;font-size:11px}
+    .primary{border:0;border-radius:12px;background:var(--accent);color:#08251d;padding:13px 20px;font-weight:800;cursor:pointer;transition:transform .15s,background .15s}
+    .primary:hover{background:#7af0c8;transform:translateY(-1px)}
+    .result{text-align:center;padding:22px 0 8px}
+    .result-icon{width:76px;height:76px;border-radius:24px;background:#153b33;color:var(--accent);display:grid;place-items:center;font-size:36px;margin:0 auto 20px}
+    .result h1{font-family:'Space Grotesk',sans-serif;font-size:32px;margin:0 0 8px}
+    .result p{color:var(--muted);line-height:1.6;margin:0 auto 22px;max-width:390px}
+    .final-score{font-family:'Space Grotesk',sans-serif;font-size:52px;font-weight:700;color:var(--accent);margin:8px 0}
+    .hidden{display:none}
+    @media(max-width:420px){body{padding:16px 12px}.top{margin-bottom:18px}.card{border-radius:19px;padding:21px 17px}.stats{margin-bottom:22px}.answer{min-height:60px}.footer{gap:10px}.footer .tip{max-width:145px}}
+    @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="top">
+      <div class="brand"><span class="brand-mark">∑</span><span>equa-o</span></div>
+      <span class="tag">DESAFIO DE MATEMÁTICA</span>
+    </header>
+
+    <section class="card" aria-live="polite">
+      <div id="game">
+        <div class="stats">
+          <div class="stat"><div class="stat-label">Questão</div><div class="stat-value"><span id="current">1</span><span style="color:var(--muted)"> / 10</span></div><div class="progress-wrap"><div class="progress" id="progress"></div></div></div>
+          <div class="level" id="level">Nível 1</div>
+          <div class="stat"><div class="stat-label">Pontos</div><div class="stat-value"><span id="score">0</span> <span style="font-size:14px;color:var(--yellow)">★</span></div></div>
+        </div>
+        <div class="prompt">
+          <p>Qual é o valor desta equação?</p>
+          <div class="equation" id="equation">8 + 4 <span class="equals">= ?</span></div>
+          <div class="hint" id="hint">Escolha uma das quatro alternativas</div>
+        </div>
+        <div class="answers" id="answers">
+          <button class="answer" type="button">12</button><button class="answer" type="button">10</button><button class="answer" type="button">14</button><button class="answer" type="button">16</button>
+        </div>
+        <div class="feedback" id="feedback" role="status" aria-live="polite"></div>
+        <div class="footer"><span class="tip">💡 Acerte para avançar à próxima questão</span><span><span class="keyboard">1–4</span> selecionar</span></div>
+      </div>
+      <div class="result hidden" id="result">
+        <div class="result-icon">🏆</div>
+        <h1>Desafio concluído!</h1>
+        <p id="result-message">Você terminou as 10 questões.</p>
+        <div class="final-score" id="final-score">0/10</div>
+        <p>Respostas corretas</p>
+        <button class="primary" id="restart" type="button">Jogar novamente ↻</button>
+      </div>
+    </section>
+  </main>
+  <script>
+    (() => {
+      const TOTAL = 10;
+      let question = 0, score = 0, currentAnswer = 0, locked = false;
+      const $ = id => document.getElementById(id);
+      const equationEl = $('equation'), answersEl = $('answers');
+      const rand = (min,max) => Math.floor(Math.random()*(max-min+1))+min;
+      const shuffle = arr => arr.sort(() => Math.random()-.5);
+
+      function makeQuestion(index) {
+        const level = index < 3 ? 1 : index < 7 ? 2 : 3;
+        let a,b,c,op,answer,expression;
+        if(level === 1) {
+          a=rand(2,20); b=rand(2,15); op=Math.random()<.5?'+':'−';
+          answer=op==='+'?a+b:a-b; expression=op==='+'?`${a} + ${b}`:`${a} − ${b}`;
+        } else if(level === 2) {
+          const kind=rand(0,2);
+          if(kind===0){a=rand(3,15);b=rand(2,12);op='×';answer=a*b;expression=`${a} × ${b}`;}
+          else if(kind===1){b=rand(2,12);answer=rand(2,12);a=b*answer;op='÷';expression=`${a} ÷ ${b}`;}
+          else {a=rand(10,35);b=rand(3,18);op=Math.random()<.5?'+':'−';answer=op==='+'?a+b:a-b;expression=op==='+'?`${a} + ${b}`:`${a} − ${b}`;}
+        } else {
+          const kind=rand(0,3);
+          if(kind===0){a=rand(2,12);b=rand(2,10);c=rand(1,15);answer=a*b+c;expression=`${a} × ${b} + ${c}`;}
+          else if(kind===1){a=rand(2,10);b=rand(2,10);c=rand(2,8);answer=(a+b)*c;expression=`(${a} + ${b}) × ${c}`;}
+          else if(kind===2){b=rand(2,10);c=rand(2,10);answer=rand(2,10);a=b*answer+c;answer=a-c;expression=`(${a} − ${c}) ÷ ${b}`;answer=(a-c)/b;}
+          else {a=rand(2,12);b=rand(2,9);c=rand(2,12);answer=a+b*c;expression=`${a} + ${b} × ${c}`;}
+        }
+        return {expression,answer,level};
+      }
+
+      function renderQuestion() {
+        locked=false;
+        const q=makeQuestion(question); currentAnswer=q.answer;
+        $('current').textContent=question+1;
+        $('score').textContent=score;
+        $('level').textContent='Nível '+q.level;
+        $('progress').style.width=(question/TOTAL*100)+'%';
+        equationEl.innerHTML=q.expression+' <span class="equals">= ?</span>';
+        $('hint').textContent='Escolha uma das quatro alternativas';
+        $('feedback').textContent=''; $('feedback').className='feedback';
+        let choices=new Set([q.answer]);
+        while(choices.size<4) {
+          const offset=rand(1,Math.max(5,Math.ceil(Math.abs(q.answer)*.35)));
+          choices.add(q.answer+(Math.random()<.5?-offset:offset));
+        }
+        const ordered=shuffle([...choices]);
+        answersEl.innerHTML='';
+        ordered.forEach((value,i)=>{
+          const btn=document.createElement('button');
+          btn.type='button';btn.className='answer';btn.textContent=value;
+          btn.setAttribute('aria-label','Alternativa '+(i+1)+': '+value);
+          btn.addEventListener('click',()=>choose(value,btn));
+          answersEl.appendChild(btn);
+        });
+      }
+
+      function choose(value,button) {
+        if(locked)return;
+        if(value===currentAnswer) {
+          locked=true;score++;button.classList.add('correct');
+          $('feedback').textContent='✓ Muito bem! Próxima questão...';
+          $('feedback').className='feedback good';
+          $('score').textContent=score;
+          [...answersEl.children].forEach(b=>b.disabled=true);
+          window.setTimeout(()=>{question++;if(question>=TOTAL)finish();else renderQuestion();},650);
+        } else {
+          button.classList.add('wrong');button.disabled=true;
+          $('feedback').textContent='Não foi dessa vez! Tente outra alternativa.';
+          $('feedback').className='feedback bad';
+        }
+      }
+
+      function finish() {
+        $('game').classList.add('hidden');$('result').classList.remove('hidden');
+        $('progress').style.width='100%';
+        $('final-score').textContent=score+'/'+TOTAL;
+        $('result-message').textContent=score===TOTAL?'Perfeito! Você acertou todas as questões.':score>=7?'Mandou muito bem! Continue praticando para chegar a 10.':score>=4?'Bom trabalho! Pratique mais um pouco e tente novamente.':'Não desanime! Cada tentativa é uma oportunidade de aprender.';
+      }
+
+      $('restart').addEventListener('click',()=>{question=0;score=0;$('result').classList.add('hidden');$('game').classList.remove('hidden');renderQuestion();});
+      document.addEventListener('keydown',e=>{if(['1','2','3','4'].includes(e.key)&&!locked&&!$('game').classList.contains('hidden')){const btn=answersEl.children[Number(e.key)-1];if(btn&&!btn.disabled)btn.click();}});
+      renderQuestion();
+    })();
+  </script>
+</body>
+</html>
