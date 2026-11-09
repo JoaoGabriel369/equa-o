@@ -58,7 +58,7 @@ button{font:inherit}.app{width:min(100%,690px);position:relative}
     <section class="card" aria-live="polite">
       <div id="game">
         <div class="stats">
-          <div class="stat"><div class="stat-label">Questão</div><div class="stat-value"><span id="current">1</span><span style="color:var(--muted)"> / 38</span></div><div class="progress-wrap"><div class="progress" id="progress"></div></div></div>
+          <div class="stat"><div class="stat-label">Questão</div><div class="stat-value"><span id="current">1</span><span style="color:var(--muted)"> / 42</span></div><div class="progress-wrap"><div class="progress" id="progress"></div></div></div>
           <div class="level" id="level">Nível 1</div>
           <div class="stat"><div class="stat-label">Pontos</div><div class="stat-value"><span id="score">0</span> <span style="font-size:14px;color:var(--yellow)">★</span></div></div>
         </div>
@@ -85,7 +85,7 @@ button{font:inherit}.app{width:min(100%,690px);position:relative}
   </main>
   <script>
 (() => {
-  const TOTAL = 38;
+  const TOTAL = 42;
   const LEVELS = ['Fundamentos','Proporção e álgebra','Funções e geometria plana','Geometria e sequências','ENEM: finanças, contagem e dados'];
   let question = 0, score = 0, currentAnswer = 0, locked = false, questions = [];
   const $ = id => document.getElementById(id);
@@ -145,11 +145,16 @@ button{font:inherit}.app{width:min(100%,690px);position:relative}
     () => {const vals=[rand(4,8),rand(9,13),rand(14,18),rand(19,23)];const ans=vals.reduce((s,v)=>s+v,0)/4;return make(5,'Estatística: média','Uma turma registrou os seguintes tempos de resolução (em minutos): '+vals.join(', ')+'. Qual foi o tempo médio?','M = ('+vals.join(' + ')+') ÷ 4',ans,'Somamos os quatro tempos ('+vals.reduce((s,v)=>s+v,0)+') e dividimos por 4: '+fmt(ans)+' minutos.');},
     () => {const vals=[2,4,6,8].map(v=>v+rand(0,4));const mean=vals.reduce((s,v)=>s+v,0)/4;const variance=vals.reduce((s,v)=>s+Math.pow(v-mean,2),0)/4;return make(5,'Dispersão de dados','Considere os dados '+vals.join(', ')+'. Qual é a amplitude total, isto é, a diferença entre o maior e o menor valor?','Amplitude = maior − menor',Math.max(...vals)-Math.min(...vals),'A amplitude é '+Math.max(...vals)+' − '+Math.min(...vals)+' = '+(Math.max(...vals)-Math.min(...vals))+'.');},
     () => {const total=rand(3,8)*10,part=rand(1,3);const values=[total-part,total,total+part];return make(5,'Leitura de dados','Uma tabela apresenta vendas de '+values.join(', ')+' unidades em três dias. Qual foi o total vendido?','Total = '+values.join(' + '),values.reduce((s,v)=>s+v,0),'Somando as vendas dos três dias: '+values.join(' + ')+' = '+values.reduce((s,v)=>s+v,0)+' unidades.');}
+    ,
+    () => {const n=rand(4,8),k=rand(2,3);let ans=1;for(let i=0;i<k;i++)ans*=n-i;return make(5,'Arranjos','Uma equipe precisa escolher '+k+' representantes entre '+n+' estudantes para ocupar cargos diferentes (presidente e vice, por exemplo). De quantas formas isso pode ser feito?','A('+n+','+k+')',ans,'Como os cargos são diferentes, a ordem importa: '+n+' × '+(n-1)+' = '+ans+' maneiras.');},
+    () => {const n=rand(5,10),k=rand(2,4);let fact=1,den=1;for(let i=1;i<=n;i++)fact*=i;for(let i=1;i<=k;i++)den*=i;for(let i=1;i<=n-k;i++)den*=i;const ans=fact/den;return make(5,'Combinação simples','Em uma turma com '+n+' alunos, serão escolhidos '+k+' para formar uma comissão, sem cargos diferentes. Quantas comissões são possíveis?','C('+n+','+k+')',ans,'Como a ordem não importa, usamos combinação: '+n+'! / ('+k+'! × '+(n-k)+'!) = '+ans+'.');},
+    () => {const types=rand(3,6),items=rand(2,4);return make(5,'Combinação com repetição','Uma sorveteria oferece '+types+' sabores. De quantas maneiras uma pessoa pode escolher '+items+' bolas, podendo repetir sabores e sem considerar a ordem?','C('+ (types+items-1)+','+items+')', (function(n,k){let v=1;for(let i=1;i<=k;i++)v=v*(n-k+i)/i;return Math.round(v);})(types+items-1,items),'Com repetição e sem considerar a ordem, usamos C(n+k−1,k): C('+ (types+items-1)+','+items+') = '+(function(n,k){let v=1;for(let i=1;i<=k;i++)v=v*(n-k+i)/i;return Math.round(v);})(types+items-1,items)+'.');},
+    () => {const a=rand(10,30),b=rand(15,35),c=rand(20,45);const vals=[a,b,c];const idx=rand(0,2);return make(5,'Gráficos e tabelas','Um gráfico de barras mostra vendas de '+a+', '+b+' e '+c+' unidades em três lojas. Qual é a diferença entre a loja com maior e a com menor venda?','Maior valor − menor valor',Math.max(...vals)-Math.min(...vals),'A diferença é '+Math.max(...vals)+' − '+Math.min(...vals)+' = '+(Math.max(...vals)-Math.min(...vals))+' unidades.');}
   ];
 
   function createGame() {
     const grouped = [1,2,3,4,5].map(level => shuffle(generators.filter((_,i) => {
-      const ranges = [[0,6],[7,13],[14,20],[21,27],[28,37]][level-1];
+      const ranges = [[0,6],[7,13],[14,20],[21,27],[28,41]][level-1];
       return i >= ranges[0] && i <= ranges[1];
     }).map(fn => fn())));
     questions = grouped.flat();
