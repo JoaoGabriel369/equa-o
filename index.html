@@ -80,7 +80,7 @@ button{font:inherit}.app{width:min(100%,690px);position:relative}
           <button class="difficulty-button medium" type="button" data-difficulty="medium"><span class="difficulty-icon">📘</span><span><strong>Médio</strong><small>Álgebra, funções e geometria</small></span><span class="difficulty-arrow">→</span></button>
           <button class="difficulty-button hard" type="button" data-difficulty="hard"><span class="difficulty-icon">🔥</span><span><strong>Difícil</strong><small>Problemas contextualizados no estilo ENEM</small></span><span class="difficulty-arrow">→</span></button>
         </div>
-        <p class="menu-note">Cada modo possui 14 questões e quatro alternativas.</p>
+        <p class="menu-note">Cada modo possui 15 questões e quatro alternativas.</p>
       </div>
       <div id="game" class="hidden">
         <div class="stats">
@@ -111,8 +111,8 @@ button{font:inherit}.app{width:min(100%,690px);position:relative}
   </main>
   <script>
 (() => {
-  const TOTAL = 14;
-  const DIFFICULTIES = {easy:{label:'Fácil',start:0,end:14},medium:{label:'Médio',start:14,end:28},hard:{label:'Difícil',start:28,end:42}};
+  const TOTAL = 15;
+  const DIFFICULTIES = {easy:{label:'Fácil',start:0,end:15},medium:{label:'Médio',start:15,end:30},hard:{label:'Difícil',start:30,end:45}};
   let selectedDifficulty = 'easy';
   let question = 0, score = 0, currentAnswer = 0, locked = false, questions = [];
   const $ = id => document.getElementById(id);
@@ -176,6 +176,10 @@ button{font:inherit}.app{width:min(100%,690px);position:relative}
 () => {const a=rand(3,8),d=rand(2,5),n=rand(10,20),sum=n*(2*a+(n-1)*d)/2;return make(5,'PA e soma de termos','Um teatro tem '+n+' fileiras. A primeira possui '+a+' assentos e cada fileira seguinte tem '+d+' a mais. Quantos assentos há no total?','Sₙ = n[2a₁+(n−1)r]/2',sum,'S = '+n+' × [2×'+a+' + ('+n+'−1)×'+d+'] ÷ 2 = '+sum+' assentos.');},
 () => {const pv=rand(8,15)*1000,n=rand(6,12),i=rand(1,3)/100,pmt=pv*i/(1-Math.pow(1+i,-n));return make(5,'Matemática financeira: Tabela Price','Um empréstimo de '+money(pv)+' será pago em '+n+' parcelas fixas, com juros de '+(i*100)+'% ao mês. Qual é aproximadamente o valor da parcela?','PMT = PV·i / [1 − (1+i)^−n]',pmt,'PMT = PV·i/[1−(1+i)^−n] = '+money(pmt)+' aproximadamente.');},
 () => {const n=rand(5,9),p=rand(2,4)/10,answer=n*p*Math.pow(1-p,n-1)*100;return make(5,'Distribuição binomial','Em cada tentativa independente, a chance de sucesso é '+(p*100)+'%. Em '+n+' tentativas, qual é a probabilidade de ocorrer exatamente um sucesso?','C('+n+',1) × p × (1−p)^'+(n-1),answer,'P = C('+n+',1) × '+p+' × '+(1-p)+'^'+(n-1)+' = '+fmt(answer)+'%.');}
+
+    ,() => {const a=rand(2,8),b=rand(3,9),qty=a+2;return make(1,'Operações combinadas','Uma cantina vende '+a+' salgados por R$ '+b+' cada. Um cliente compra '+qty+' unidades e usa um cupom de R$ 5. Quanto paga?','('+qty+' × '+b+') − 5',qty*b-5,'Multiplicamos a quantidade pelo preço e subtraímos o desconto: '+qty+' × '+b+' − 5 = R$ '+(qty*b-5)+'.');}
+    ,() => {const a=rand(3,8),b=rand(2,6),x=rand(3,8),ans=a*x+b;return make(2,'Função afim contextualizada','Uma empresa cobra taxa fixa de R$ '+b+' e mais R$ '+a+' por unidade produzida. Qual será o custo para produzir '+x+' unidades?','C(x) = '+a+'x + '+b,ans,'C = '+a+' × '+x+' + '+b+' = R$ '+ans+'.');}
+    ,() => {const principal=rand(4,10)*1000,rate=rand(2,4),months=rand(3,6),amount=principal*Math.pow(1+rate/100,months);return make(5,'Juros compostos em etapas','Um investimento de '+money(principal)+' rende '+rate+'% ao mês. Considerando juros compostos, qual será o montante após '+months+' meses?','M = C(1+i)^t',amount,'M = '+money(principal)+' × (1 + '+rate+'/100)^'+months+' = '+money(amount)+'.');}
     ];
 
   function createGame() {
