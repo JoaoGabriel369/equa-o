@@ -41,6 +41,23 @@ button{font:inherit}.app{width:min(100%,690px);position:relative}
 .keyboard{border:1px solid #aebfc3;padding:2px 7px;border-radius:2px;color:#365766;font-family:'DM Sans',sans-serif;font-size:11px;background:#fff9}
 .primary{border:0;border-radius:3px;background:var(--blue);color:white;padding:13px 22px;font-weight:800;cursor:pointer;transition:transform .15s,background .15s;box-shadow:3px 4px 0 #143d4c30}
 .primary:hover{background:#1c566d;transform:translateY(-1px)}
+
+.menu{text-align:center;padding:15px 0 10px}
+.menu-heading p{font-family:'Patrick Hand',cursive;color:var(--blue);font-weight:700;letter-spacing:2px;margin:0 0 7px}
+.menu-heading h1{font-family:'Space Grotesk',sans-serif;font-size:clamp(27px,6vw,36px);margin:0 0 7px;color:var(--ink)}
+.menu-heading>span{color:var(--muted);font-size:14px}
+.difficulty-list{display:grid;gap:12px;margin:28px auto 17px;max-width:470px}
+.difficulty-button{display:flex;align-items:center;gap:14px;text-align:left;width:100%;padding:15px 17px;background:#ffffffc9;border:2px solid #b8c9cd;border-radius:4px;color:var(--ink);cursor:pointer;transition:transform .16s,border-color .16s,background .16s;box-shadow:3px 4px 0 #17384a12}
+.difficulty-button:hover{transform:translateY(-3px);border-color:var(--blue);background:#e8f3f5}
+.difficulty-button:focus-visible,.menu-back:focus-visible{outline:3px solid var(--blue);outline-offset:3px}
+.difficulty-icon{font-size:26px}
+.difficulty-button strong{display:block;font-family:'Space Grotesk',sans-serif;font-size:19px}
+.difficulty-button small{display:block;color:var(--muted);font-size:12px;margin-top:3px}
+.difficulty-arrow{margin-left:auto;font-size:24px;color:var(--blue)}
+.menu-note{font-family:'Patrick Hand',cursive;color:var(--muted);font-size:16px}
+.menu-back{border:1px solid #aebfc3;background:#fff9;color:#365766;border-radius:3px;padding:8px 12px;font:600 13px 'DM Sans',sans-serif;cursor:pointer;transition:background .15s,border-color .15s}
+.menu-back:hover{background:#e8f3f5;border-color:var(--blue)}
+.result-back{display:block;margin:13px auto 0}
 .result{text-align:center;padding:22px 0 8px}.result-icon{width:76px;height:76px;border:2px dashed var(--blue);color:var(--blue);display:grid;place-items:center;font-size:36px;margin:0 auto 20px;border-radius:50%;background:#eaf3f4}
 .result h1{font-family:'Space Grotesk',sans-serif;font-size:32px;margin:0 0 8px;color:var(--ink)}.result p{color:var(--muted);line-height:1.6;margin:0 auto 22px;max-width:390px}
 .final-score{font-family:'Space Grotesk',sans-serif;font-size:52px;font-weight:700;color:var(--blue);margin:8px 0}.hidden{display:none}
@@ -56,9 +73,18 @@ button{font:inherit}.app{width:min(100%,690px);position:relative}
     </header>
 
     <section class="card" aria-live="polite">
-      <div id="game">
+      <div id="menu" class="menu">
+        <div class="menu-heading"><p>ESCOLHA SEU DESAFIO</p><h1>Qual é o seu nível?</h1><span>Selecione a dificuldade para começar a jogar.</span></div>
+        <div class="difficulty-list">
+          <button class="difficulty-button easy" type="button" data-difficulty="easy"><span class="difficulty-icon">🌱</span><span><strong>Fácil</strong><small>Fundamentos e operações matemáticas</small></span><span class="difficulty-arrow">→</span></button>
+          <button class="difficulty-button medium" type="button" data-difficulty="medium"><span class="difficulty-icon">📘</span><span><strong>Médio</strong><small>Álgebra, funções e geometria</small></span><span class="difficulty-arrow">→</span></button>
+          <button class="difficulty-button hard" type="button" data-difficulty="hard"><span class="difficulty-icon">🔥</span><span><strong>Difícil</strong><small>Problemas contextualizados no estilo ENEM</small></span><span class="difficulty-arrow">→</span></button>
+        </div>
+        <p class="menu-note">Cada modo possui 14 questões e quatro alternativas.</p>
+      </div>
+      <div id="game" class="hidden">
         <div class="stats">
-          <div class="stat"><div class="stat-label">Questão</div><div class="stat-value"><span id="current">1</span><span style="color:var(--muted)"> / 42</span></div><div class="progress-wrap"><div class="progress" id="progress"></div></div></div>
+          <div class="stat"><div class="stat-label">Questão</div><div class="stat-value"><span id="current">1</span><span style="color:var(--muted)"> / 14</span></div><div class="progress-wrap"><div class="progress" id="progress"></div></div></div>
           <div class="level" id="level">Nível 1</div>
           <div class="stat"><div class="stat-label">Pontos</div><div class="stat-value"><span id="score">0</span> <span style="font-size:14px;color:var(--yellow)">★</span></div></div>
         </div>
@@ -71,7 +97,7 @@ button{font:inherit}.app{width:min(100%,690px);position:relative}
           <button class="answer" type="button">12</button><button class="answer" type="button">10</button><button class="answer" type="button">14</button><button class="answer" type="button">16</button>
         </div>
         <div class="feedback" id="feedback" role="status" aria-live="polite"></div>
-        <div class="footer"><span class="tip">💡 Acerte para avançar à próxima questão</span><span><span class="keyboard">1–4</span> selecionar</span></div>
+        <div class="footer"><button class="menu-back" id="back-menu" type="button">← Trocar dificuldade</button><span><span class="keyboard">1–4</span> selecionar</span></div>
       </div>
       <div class="result hidden" id="result">
         <div class="result-icon">🏆</div>
@@ -79,14 +105,15 @@ button{font:inherit}.app{width:min(100%,690px);position:relative}
         <p id="result-message">Você terminou as 10 questões.</p>
         <div class="final-score" id="final-score">0/10</div>
         <p>Respostas corretas</p>
-        <button class="primary" id="restart" type="button">Jogar novamente ↻</button>
+        <button class="primary" id="restart" type="button">Jogar novamente ↻</button><button class="menu-back result-back" id="result-menu" type="button">Escolher dificuldade</button>
       </div>
     </section>
   </main>
   <script>
 (() => {
-  const TOTAL = 42;
-  const LEVELS = ['Fundamentos','Proporção e álgebra','Funções e geometria plana','Geometria e sequências','ENEM: finanças, contagem e dados'];
+  const TOTAL = 14;
+  const DIFFICULTIES = {easy:{label:'Fácil',start:0,end:14},medium:{label:'Médio',start:14,end:28},hard:{label:'Difícil',start:28,end:42}};
+  let selectedDifficulty = 'easy';
   let question = 0, score = 0, currentAnswer = 0, locked = false, questions = [];
   const $ = id => document.getElementById(id);
   const equationEl = $('equation'), answersEl = $('answers');
@@ -114,7 +141,7 @@ button{font:inherit}.app{width:min(100%,690px);position:relative}
     () => {const m=rand(2,8),b=rand(1,12),x=rand(2,9);return make(2,'Função afim','Uma corrida de aplicativo cobra taxa fixa de R$ '+b+' mais R$ '+m+' por quilômetro. Qual o preço de uma corrida de '+x+' km?','f(x) = '+m+'x + '+b,m*x+b,'Substituindo x = '+x+': '+m+' × '+x+' + '+b+' = R$ '+(m*x+b)+'.');},
     () => {const x=rand(3,12),b=rand(2,15),a=rand(2,7),rhs=a*x+b;return make(2,'Equação do 1º grau','Uma compra é representada por '+a+'x + '+b+' = '+rhs+'. Qual é o valor de x?',''+a+'x + '+b+' = '+rhs,x,'Isolando x: '+a+'x = '+(rhs-b)+'; então x = '+x+'.');},
     () => {const x=rand(2,8),y=rand(1,7),a=rand(1,4),b=rand(1,4),c=a*x+b*y,d=rand(1,4)*x+rand(1,4)*y;return make(2,'Sistemas lineares','Em um sistema, as incógnitas representam quantidades de dois produtos. Sabendo que x + y = '+(x+y)+' e x − y = '+(x-y)+', qual é x?','x + y = '+(x+y)+'; x − y = '+(x-y),x,'Somando as equações: 2x = '+(2*x)+'. Logo, x = '+x+'.');},
-    () => {const r=rand(2,9),x=rand(2,7),b=rand(1,8),c=x*x-r*r;const ans=x;return make(2,'Função quadrática','A altura de um objeto é dada por h(t) = −t² + '+(2*x)+'t + b+'. Em qual instante ocorre a altura máxima?','t do vértice = −B/(2A)',x,'Na parábola, o vértice ocorre em t = −B/(2A). Aqui, t = −'+(2*x)+'/(2 × −1) = '+x+'.');},
+    () => {const r=rand(2,9),x=rand(2,7),b=rand(1,8),c=x*x-r*r;const ans=x;return make(2,'Função quadrática','A altura de um objeto é dada por h(t) = −t² + '+(2*x)+'t + '+b+'. Em qual instante ocorre a altura máxima?','t do vértice = −B/(2A)',x,'Na parábola, o vértice ocorre em t = −B/(2A). Aqui, t = −'+(2*x)+'/(2 × −1) = '+x+'.');},
 
     // Nível 3 — funções e geometria plana
     () => {const base=rand(2,5),power=rand(2,4);return make(3,'Função exponencial','Uma população de bactérias dobra a cada hora. Se começa com '+base+' bactérias, quantas haverá após '+power+' horas?',''+base+' × 2^'+power,base*Math.pow(2,power),'Crescimento exponencial: '+base+' × 2^'+power+' = '+base*Math.pow(2,power)+' bactérias.');},
@@ -153,11 +180,8 @@ button{font:inherit}.app{width:min(100%,690px);position:relative}
   ];
 
   function createGame() {
-    const grouped = [1,2,3,4,5].map(level => shuffle(generators.filter((_,i) => {
-      const ranges = [[0,6],[7,13],[14,20],[21,27],[28,41]][level-1];
-      return i >= ranges[0] && i <= ranges[1];
-    }).map(fn => fn())));
-    questions = grouped.flat();
+    const mode = DIFFICULTIES[selectedDifficulty];
+    questions = shuffle(generators.slice(mode.start,mode.end).map(fn => fn()));
   }
 
   function makeChoices(answer) {
@@ -180,7 +204,7 @@ button{font:inherit}.app{width:min(100%,690px);position:relative}
     const q=questions[question];currentAnswer=q.answer;
     $('current').textContent=question+1;
     $('score').textContent=score;
-    $('level').textContent='Nível '+q.level+' · '+LEVELS[q.level-1];
+    $('level').textContent='Modo '+DIFFICULTIES[selectedDifficulty].label;
     $('progress').style.width=(question/TOTAL*100)+'%';
     $('questionPrompt').textContent=q.prompt;
     equationEl.textContent=q.expression+' = ?';
@@ -219,9 +243,27 @@ button{font:inherit}.app{width:min(100%,690px);position:relative}
     $('result-message').textContent=score===TOTAL?'Excelente! Você dominou todos os níveis do desafio ENEM.':score>=28?'Desempenho excelente! Você demonstrou domínio dos conteúdos.':score>=21?'Muito bom! Você avançou por todos os níveis e está no caminho certo.':score>=14?'Bom trabalho! Revise os assuntos em que teve dificuldade e tente novamente.':'Continue praticando! A cada tentativa você fortalece sua base matemática.';
   }
 
-  $('restart').addEventListener('click',()=>{question=0;score=0;createGame();$('result').classList.add('hidden');$('game').classList.remove('hidden');renderQuestion();});
+  function showMenu() {
+    $('menu').classList.remove('hidden');
+    $('game').classList.add('hidden');
+    $('result').classList.add('hidden');
+  }
+  function startGame(mode) {
+    selectedDifficulty=mode;question=0;score=0;locked=false;
+    createGame();
+    $('menu').classList.add('hidden');
+    $('result').classList.add('hidden');
+    $('game').classList.remove('hidden');
+    renderQuestion();
+  }
+  document.querySelectorAll('[data-difficulty]').forEach(button=>{
+    button.addEventListener('click',()=>startGame(button.dataset.difficulty));
+  });
+  $('restart').addEventListener('click',()=>startGame(selectedDifficulty));
+  $('back-menu').addEventListener('click',showMenu);
+  $('result-menu').addEventListener('click',showMenu);
   document.addEventListener('keydown',e=>{if(['1','2','3','4'].includes(e.key)&&!locked&&!$('game').classList.contains('hidden')){const btn=answersEl.children[Number(e.key)-1];if(btn&&!btn.disabled)btn.click();}});
-  createGame();renderQuestion();
+  showMenu();
 })();
 </script>
 </body>
